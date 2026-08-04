@@ -2,7 +2,7 @@
 
 # Script to extract frames from a video at regular intervals using ffmpeg
 
-# Usage: ./extract_frames.sh <video_filename> [-i/--interval <seconds>] [-o/--output <directory>] [-s/--start <seconds>] [-v/--verbose] [-y/--yes]
+# Usage: ./extract_frames.sh <video_filename> [-i/--interval <seconds>] [-h/--height <pixels>] [-o/--output <directory>] [-s/--start <seconds>] [-v/--verbose] [-y/--yes]
 
 # Check for required argument: video filename
 if [ $# -lt 1 ]; then
@@ -17,6 +17,7 @@ OUTPUT_DIR="${VIDEO_FILE%.*}"  # Default output directory is video filename with
 AUTO_DELETE="false"  # Default: do not auto-delete
 START=2  # Default start time is 2 seconds
 VERBOSE="false"  # Default: do not be verbose
+HEIGHT=480  # Default height is 480 pixels
 
 # Parse optional arguments
 shift  # Remove the first argument (video file)
@@ -52,6 +53,15 @@ while [[ $# -gt 0 ]]; do
         -y|--yes)
             AUTO_DELETE="true"
             shift
+            ;;
+        -h|--height)
+            if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+                HEIGHT="$2"
+                shift 2
+            else
+                echo "Error: --height requires a numeric value"
+                exit 1
+            fi
             ;;
         -v|--verbose)
             VERBOSE="true"
@@ -131,7 +141,7 @@ fi
 
 # Extract frames using ffmpeg
 # -vf "fps=1/$INTERVAL": extract 1 frame every INTERVAL seconds
-# -vf "scale='min(iw,ih*2)':480": scale to max height of 480px, adjust width proportionally
+# -vf "scale='-1:480": scale to max height of 480px, adjust width proportionally
 # -q:v 2: set quality (2 is high quality)
 # -f image2: output format (image sequence)
 # output_%03d.png: output filename pattern
@@ -139,7 +149,7 @@ fi
 # `fps=1/$INTERVAL` starts at FPS/2, REGARDLESS of `-ss`! So we hack it here.
 START_INDEX=$((-( $INTERVAL / 2 )+$START))
 
-FFMPEG_COMMAND="ffmpeg -i \"$VIDEO_FILE\" -vf \"fps=1/$INTERVAL:start_time=$START_INDEX, scale=-1:480\" -q:v 2 -f image2 \"$OUTPUT_DIR/output_%03d.jpg\""
+FFMPEG_COMMAND="ffmpeg -i \"$VIDEO_FILE\" -vf \"fps=1/$INTERVAL:start_time=$START_INDEX, scale=-1:$HEIGHT\" -q:v 2 -f image2 \"$OUTPUT_DIR/output_%03d.jpg\""
 if [ "$VERBOSE" = "true" ]; then
     echo "Extracting frames with parameters:" >&2
     echo "  - Input file: $VIDEO_FILE" >&2
@@ -147,12 +157,13 @@ if [ "$VERBOSE" = "true" ]; then
     echo "  - Interval: $INTERVAL seconds" >&2
     echo "  - Output directory: $OUTPUT_DIR" >&2
     echo "  - Output pattern: output_%03d.jpg" >&2
+    echo "  - Height: $HEIGHT pixels" >&2
     echo "FFmpeg command:" >&2
     echo $FFMPEG_COMMAND >&2
 fi
 
 eval "$FFMPEG_COMMAND"
-# ffmpeg -ss "$START" -i "$VIDEO_FILE" -vf "fps=1/$INTERVAL, scale=-1:480" -q:v 2 -f image2 "$OUTPUT_DIR/output_%03d.jpg"
+# ffmpeg -ss "$START" -i "$VIDEO_FILE" -vf "fps=1/$INTERVAL, scale=-1:$HEIGHT" -q:v 2 -f image2 "$OUTPUT_DIR/output_%03d.jpg"
 
 # Check if ffmpeg command succeeded
 if [ $? -eq 0 ]; then
