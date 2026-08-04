@@ -6,7 +6,7 @@
 
 # Check for required argument: video filename
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <video_filename> [-i/--interval <seconds>] [-o/--output <directory>] [-y/--yes]"
+    echo "Usage: $0 <video_filename> [-i/--interval <seconds>] [-h/--height <pixels>] [-o/--output <directory>] [-s/--start <seconds>] [-v/--verbose] [-y/--yes]"
     exit 1
 fi
 
@@ -141,7 +141,7 @@ fi
 
 # Extract frames using ffmpeg
 # -vf "fps=1/$INTERVAL": extract 1 frame every INTERVAL seconds
-# -vf "scale='-1:480": scale to max height of 480px, adjust width proportionally
+# -vf "scale='-1:$HEIGHT": scale to max height of $HEIGHTpx, adjust width proportionally
 # -q:v 2: set quality (2 is high quality)
 # -f image2: output format (image sequence)
 # output_%03d.png: output filename pattern
