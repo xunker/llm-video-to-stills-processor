@@ -163,7 +163,6 @@ if [ "$VERBOSE" = "true" ]; then
 fi
 
 eval "$FFMPEG_COMMAND"
-# ffmpeg -ss "$START" -i "$VIDEO_FILE" -vf "fps=1/$INTERVAL, scale=-1:$HEIGHT" -q:v 2 -f image2 "$OUTPUT_DIR/output_%03d.jpg"
 
 # Check if ffmpeg command succeeded
 if [ $? -eq 0 ]; then
