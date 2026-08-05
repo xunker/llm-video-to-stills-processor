@@ -17,7 +17,7 @@ OUTPUT_DIR="${VIDEO_FILE%.*}"  # Default output directory is video filename with
 AUTO_DELETE="false"  # Default: do not auto-delete
 START=2  # Default start time is 2 seconds
 VERBOSE="false"  # Default: do not be verbose
-HEIGHT=480  # Default height is 480 pixels
+HEIGHT=304  # Default height is 304 pixels to correlate with 528×304 res
 
 # Parse optional arguments
 shift  # Remove the first argument (video file)
