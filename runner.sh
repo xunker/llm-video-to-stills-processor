@@ -24,14 +24,24 @@ AUDIO=$(find "$DIR" -maxdepth 1 -type f -iname "*.wav" | sort)
 ARGS=()
 
 # Expand images into array entries
-for img in $IMAGES; do
-    ARGS+=("--image" "$img" )
-done
+IMAGE_LIST=""
+  while IFS= read -r img; do
+    if [ -z "$IMAGE_LIST" ]; then
+      IMAGE_LIST="$img"
+    else
+      IMAGE_LIST="$IMAGE_LIST,$img"
+    fi
+  done <<< "$IMAGES"
 
 # Expand audio into array entries
-for wav in $AUDIO; do
-    ARGS+=("--audio" "$wav" )
-done
+AUDIO_LIST=""
+  while IFS= read -r wav; do
+    if [ -z "$AUDIO_LIST" ]; then
+      AUDIO_LIST="$wav"
+    else
+      AUDIO_LIST="$AUDIO_LIST,$wav"
+    fi
+  done <<< "$AUDIO"
 
 # Run llama-mtmd-cli
-echo llama-mtmd-cli "${ARGS[@]}"
+echo llama-mtmd-cli "--image \"$IMAGE_LIST\" --audio \"$AUDIO_LIST\""
