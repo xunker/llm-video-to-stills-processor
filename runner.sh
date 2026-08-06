@@ -3,7 +3,7 @@
 set -e
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 <directory> [-- <extra_args>...]"
+    echo "Usage: $0 <directory> [-D|--dry-run] [-- <extra_args>...]"
     exit 1
 fi
 
@@ -12,11 +12,26 @@ DIR="$1"
 # Shift to process remaining arguments
 shift
 
+DRY_RUN=false
 EXTRA_ARGS=()
-if [ "$#" -gt 0 ] && [ "$1" = "--" ]; then
-    shift
-    EXTRA_ARGS=("$@")
-fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -D|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --)
+            shift
+            EXTRA_ARGS=("$@")
+            break
+            ;;
+        *)
+            EXTRA_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
 
 # Collect JPG images (alphabetically)
 IMAGES=$(find "$DIR" -maxdepth 1 -type f -iname "*.jpg" | sort)
@@ -48,13 +63,19 @@ AUDIO_LIST=""
   done <<< "$AUDIO"
 
 # Run llama-mtmd-cli
-EXTRA_ARGS_QUOTED=()
+QUOTED_ARGS=()
   for arg in "${EXTRA_ARGS[@]}"; do
     if [[ "$arg" == -* ]]; then
-      EXTRA_ARGS_QUOTED+=("$arg")
+      QUOTED_ARGS+=("$arg")
     else
-      EXTRA_ARGS_QUOTED+=("\"$arg\"")
+      QUOTED_ARGS+=("\"$arg\"")
     fi
   done
 
-echo llama-mtmd-cli "--image \"$IMAGE_LIST\" --audio \"$AUDIO_LIST\"" "${EXTRA_ARGS_QUOTED[@]}"
+CMD="llama-mtmd-cli --image \"$IMAGE_LIST\" --audio \"$AUDIO_LIST\" ${QUOTED_ARGS[@]}"
+
+if $DRY_RUN; then
+  echo "$CMD"
+else
+  eval "$CMD"
+fi
