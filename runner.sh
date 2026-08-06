@@ -3,15 +3,19 @@
 set -e
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 <directory>"
+    echo "Usage: $0 <directory> [-- <extra_args>...]"
     exit 1
 fi
 
 DIR="$1"
 
-if [ ! -d "$DIR" ]; then
-    echo "Error: '$DIR' is not a directory"
-    exit 1
+# Shift to process remaining arguments
+shift
+
+EXTRA_ARGS=()
+if [ "$#" -gt 0 ] && [ "$1" = "--" ]; then
+    shift
+    EXTRA_ARGS=("$@")
 fi
 
 # Collect JPG images (alphabetically)
@@ -44,4 +48,13 @@ AUDIO_LIST=""
   done <<< "$AUDIO"
 
 # Run llama-mtmd-cli
-echo llama-mtmd-cli "--image \"$IMAGE_LIST\" --audio \"$AUDIO_LIST\""
+EXTRA_ARGS_QUOTED=()
+  for arg in "${EXTRA_ARGS[@]}"; do
+    if [[ "$arg" == -* ]]; then
+      EXTRA_ARGS_QUOTED+=("$arg")
+    else
+      EXTRA_ARGS_QUOTED+=("\"$arg\"")
+    fi
+  done
+
+echo llama-mtmd-cli "--image \"$IMAGE_LIST\" --audio \"$AUDIO_LIST\"" "${EXTRA_ARGS_QUOTED[@]}"
