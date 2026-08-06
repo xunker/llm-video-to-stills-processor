@@ -5,7 +5,7 @@
 ALLOWED_LLAMA_COMMANDS=("llama-mtmd-cli" "llama-cli")
 
 usage() {
-  echo "Usage: $0 <llama-cpp-command> <directory> [-D|--dry-run] [-- <extra_args>...]"
+  echo "Usage: $0 <llama-cpp-command> <directory> [-D|--dry-run] [-P|--prompt-append <string>] [-- <extra_args>...]"
   echo "  allowed <llama-cpp-command> values: ${ALLOWED_LLAMA_COMMANDS[@]}"
   exit 1
 }
@@ -46,6 +46,14 @@ while [ "$#" -gt 0 ]; do
         -D|--dry-run)
             DRY_RUN=true
             shift
+            ;;
+        -P|--prompt-append)
+            if [ -z "$2" ]; then
+                echo "Error: $1 requires a non-empty argument"
+                usage
+            fi
+            ADDITIONAL_INSTRUCTIONS+=" $2"
+            shift 2
             ;;
         --)
             shift
@@ -90,6 +98,8 @@ Attached is $(echo $(join_by " and " "${PROMPT_ATTACHMENTS[@]}"))
 from a single video. The filename of the video is \"$BASENAME\".
 
 Format all output as Markdown.
+
+$ADDITIONAL_INSTRUCTIONS
 
 Use the following template for your response:
 
