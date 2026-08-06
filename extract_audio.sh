@@ -39,6 +39,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Strip commas from OUTPUT_DIR
+OUTPUT_DIR="${OUTPUT_DIR//,/}"
+
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
